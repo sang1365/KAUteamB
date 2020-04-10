@@ -1,8 +1,8 @@
 # Kakaotalk analysis project
-##KAUteamB
+## KAUteamB
 Multipurpose Kakaotalk anlyzer using Python and KoNLPy lib
 
-###members
+### members
 - KAU 4th grade * 4
 
-#Comming Soon....
+# Comming Soon....
