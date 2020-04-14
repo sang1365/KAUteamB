@@ -3,12 +3,13 @@
 import json
 import datetime
 import re
+from konlpy.utils import pprint
 
 #카카오톡 대화를 시간, 사람, 내용 데이터로 잘라서 저장하는 객체.
 #pc 내보내기 모드는 만들려고했는데 무기한 연기되었습니다. (모바일과 달리 귀찮은 작업이 될것으로 예상)
 class KakaotalkJsonParser:
     #KakaotalkJsonParser(filename, mod=('pc' or 'mobile'))
-    def __init__(self, mod):
+    def __init__(self, mod = 'mobile'):
         try:
             if mod is not "pc" and mod is not "mobile":
                 Exception(mod + " mod is not supported. only 'pc' and 'mobile' mod supported")
@@ -36,8 +37,8 @@ class KakaotalkJsonParser:
             self.date_form = re.compile("[0-9]{4}\.([0-9]| ){2}\.([0-9]| ){2}\. (오후|오전)([0-9]| ){2}:([0-9]| ){2}")
         self.mod = mod
 
-    #파일을 dict 형태로 파싱해서 반환합니다.
-    def parse(self, filename):
+    #파일을 dict 형태로 파싱해서 반환합니다.unit은 묶는 단위를 나타냅니다.
+    def parse(self, filename, unit="chat"):
         result = {};
         try:
             file = open(filename, 'r', encoding='UTF8')
@@ -59,22 +60,35 @@ class KakaotalkJsonParser:
             speaker = re.compile(", [^:]* : ").search(line).group().replace(", ","").replace(" : ","")
             chat = re.compile(": .*").search(line).group().replace(": ","")
             #debuging code
-            print(f"date:{date_processed} , id:{speaker}, content:{chat}")
-            
-            if date.strftime("%Y-%m-%d") not in result :
-                result[date.strftime("%Y-%m-%d")] = []
-            result[date.strftime("%Y-%m-%d")].append({"timestamp": str(date), "speaker": speaker, "chat": chat})
+            #print(f"date:{date_processed} , id:{speaker}, content:{chat}")
+            if unit is 'chat':
+                if 'chat_list' not in result :
+                    result['chat_list'] = []
+                result['chat_list'].append({"timestamp": str(date), "speaker": speaker, "chat": chat})
+            elif unit is 'day':
+                if date.strftime("%Y-%m-%d") not in result :
+                    result[date.strftime("%Y-%m-%d")] = []
+                result[date.strftime("%Y-%m-%d")].append({"timestamp": str(date), "speaker": speaker, "chat": chat})
+            elif unit is 'month':
+                if date.strftime("%Y-%m") not in result :
+                    result[date.strftime("%Y-%m")] = []
+                result[date.strftime("%Y-%m")].append({"timestamp": str(date), "speaker": speaker, "chat": chat})
+            elif unit is 'year':
+                if date.strftime("%Y") not in result :
+                    result[date.strftime("%Y")] = []
+                result[date.strftime("%Y")].append({"timestamp": str(date), "speaker": speaker, "chat": chat})
+
         return result
 
     #결과를 json 파일로 반환하는 함수
     #결과 파일을 열어보면 유니코드 코드가 두두두두 찍혀있는 끔찍한 광경을 보실 수 있습니다.
     #고쳐야하나?()
-    def parse_to_json_file(self, filename_input, filename_output):
+    def parse_to_json_file(self, filename_input, filename_output, unit='chat'):
         json_file_name = filename_output + ".json"
         file_output = open(json_file_name, mode = "w", encoding="utf-8")
-        json.dump(self.parse(filename_input), file_output)
+        json.dump(self.parse(filename_input,unit), file_output, indent=4)
         file_output.close()
 
 #테스트용 코드
-#k_parser = KakaotalkJsonParser("pc")
-#pprint(k_parser.parse("filename.txt"))
+#k_parser = KakaotalkJsonParser("mobile")
+#pprint(k_parser.parse("나만정상인6.txt",'year'))
