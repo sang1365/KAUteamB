@@ -3,7 +3,7 @@
 import json
 import datetime
 import re
-from konlpy.utils import pprint
+#from konlpy.utils import pprint
 
 #카카오톡 대화를 시간, 사람, 내용 데이터로 잘라서 저장하는 객체.
 #pc 내보내기 모드는 만들려고했는데 무기한 연기되었습니다. (모바일과 달리 귀찮은 작업이 될것으로 예상)
@@ -86,9 +86,24 @@ class KakaotalkJsonParser:
     def parse_to_json_file(self, filename_input, filename_output, unit='chat'):
         json_file_name = filename_output + ".json"
         file_output = open(json_file_name, mode = "w", encoding="utf-8")
-        json.dump(self.parse(filename_input,unit), file_output, indent=4)
+        json.dump(self.parse(filename_input,unit), file_output,indent=4)
         file_output.close()
+
+    def user_list(self, filename):
+        chat_list = self.parse(filename,'chat')["chat_list"]
+        user_list = []
+        for chat in chat_list:
+            user = chat['speaker']
+            if user not in user_list:
+                user_list.append(user)
+        return user_list
+    
+    def len(self, filename):
+        chat_list = self.parse(filename,'chat')["chat_list"]
+        return len(chat_list)
+
+
 
 #테스트용 코드
 #k_parser = KakaotalkJsonParser("mobile")
-#pprint(k_parser.parse("나만정상인6.txt",'year'))
+#pprint(k_parser.len("나만정상인6.txt"))
